@@ -11,7 +11,7 @@ namespace Blogifier.Controllers
 {
 	[Route("api/[controller]")]
 	[ApiController]
-	public class StorageController : ControllerBase
+	public class StorageController : UploadController
 	{
 		private readonly IStorageProvider _storageProvider;
 		private readonly IAuthorProvider _authorProvider;
