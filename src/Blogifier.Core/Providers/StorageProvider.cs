@@ -9,6 +9,8 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 
+
+
 namespace Blogifier.Core.Providers
 {
 	public interface IStorageProvider
@@ -20,6 +22,8 @@ namespace Blogifier.Core.Providers
 		Task<string> UploadBase64Image(string baseImg, string root, string path = "");
 		Task<ThemeSettings> GetThemeSettings(string theme);
 		Task<bool> SaveThemeSettings(string theme, ThemeSettings settings);
+
+		Task<string> DownloadFile(string keyName);
 	}
 
 	public class StorageProvider : IStorageProvider

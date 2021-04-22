@@ -41,17 +41,29 @@ namespace Blogifier.Controllers
 		}
 
 		[Authorize]
+		[HttpPost("download/{key}")]
+		public async Task<ActionResult> Download(string key)
+		{
+			var resp = await _storageProvider.DownloadFile(key);
+			if (resp == "error") return BadRequest();
+			return Ok();
+		}
+
+		[Authorize]
 		[HttpPost("upload/{uploadType}")]
 		public async Task<ActionResult> Upload(IFormFile file, UploadType uploadType, int postId = 0)
 		{
 			var author = await _authorProvider.FindByEmail(User.Identity.Name);
 			var post = postId == 0 ? new Post() : await _postProvider.GetPostById(postId);
 
-            var path = $"{author.Id}/{DateTime.Now.Year}/{DateTime.Now.Month}";
-			var fileName = $"data/{path}/{file.FileName}";
+            // var path = $"{author.Id}/{DateTime.Now.Year}/{DateTime.Now.Month}";
+			// var fileName = $"data/{path}/{file.FileName}";
 
-            if (uploadType == UploadType.PostImage)
-                fileName = Url.Content("~/") + fileName;
+            // if (uploadType == UploadType.PostImage)
+            //     fileName = Url.Content("~/") + fileName;
+
+			var path = Guid.NewGuid().ToString();
+			var fileName = path;
 
 			if (await _storageProvider.UploadFormFile(file, path))
 			{
