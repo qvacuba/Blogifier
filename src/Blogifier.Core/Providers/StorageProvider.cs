@@ -289,6 +289,11 @@ namespace Blogifier.Core.Providers
 			return imgTag.Substring(srcStart, srcEnd - srcStart);
 		}
 
-		#endregion
-	}
+        public Task<string> DownloadFile(string keyName)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
+    }
 }
