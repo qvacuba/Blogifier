@@ -118,7 +118,7 @@ namespace Blogifier.Core.Providers
                 }
                 return responseBody;
             }
-            catch (AmazonS3Exception e)
+            catch (AmazonS3Exception)
             {
                 // If bucket or object does not exist
                 return "Error";
