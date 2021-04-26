@@ -1,3 +1,4 @@
+using System.Net.Http;
 using System.Data;
 using System;
 using Blogifier.Core.Providers;
@@ -16,6 +17,7 @@ using System.IO;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
 using ClosedXML.Excel;
+using System.Text;
 
 namespace Blogifier.Controllers
 {
@@ -25,7 +27,6 @@ namespace Blogifier.Controllers
     {
         private readonly INewsletterProvider _newsletterProvider;
         private readonly IHttpContextAccessor _httpContextAccessor; 
-        private readonly string fixedPath = "Downloads/";
 
 		public ExportController(INewsletterProvider newsletterProvider, IHttpContextAccessor contextAccessor)
 		{
@@ -33,11 +34,17 @@ namespace Blogifier.Controllers
             _httpContextAccessor = contextAccessor;
 		}
 
-        [Authorize]
+        // [Authorize]
 		[HttpGet("emails/{fileType}")]
 		public async Task<IActionResult> ExportToFileType(string fileType)
 		{
 			var emails = await _newsletterProvider.GetSubscribers();
+
+            // var emails = new List<Subscriber> {
+            //     new Subscriber() {Id = 1, Email = "subs1@gmail.com"},
+            //     new Subscriber() {Id = 2, Email = "subs2@gmail.com"},
+            //     new Subscriber() {Id = 3, Email = "subs3@gmail.com"},
+            // };
 
             var compare = fileType.ToLower();
 
@@ -106,7 +113,15 @@ namespace Blogifier.Controllers
                             workBook.SaveAs(stream);  
                             return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Subscribers.xlsx");  
                         }  
-                    }  
+                    }
+                case "txt":
+                    using (MemoryStream stream = new MemoryStream())  
+                    {  
+                        foreach(var e in emails) {
+                            stream.Write(Encoding.ASCII.GetBytes(e.Email));
+                        }
+                        return File(stream.ToArray(), "application/Text", "Subscribers.txt");  
+                    }    
                 default:
                     break;
             }

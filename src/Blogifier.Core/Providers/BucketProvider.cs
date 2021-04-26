@@ -19,7 +19,7 @@ namespace Blogifier.Core.Providers
 {
     public class BucketProvider : IStorageProvider
     {
-		private const string bucketName = "pending-bucket";
+		private const string bucketName = "qvanuncios-bucket";
 		private static readonly RegionEndpoint bucketRegion = RegionEndpoint.USWest2;
         private static IAmazonS3 s3Client;
 
@@ -147,6 +147,7 @@ namespace Blogifier.Core.Providers
             {
                 var fileTransferUtility =
                     new TransferUtility(s3Client);
+				Console.WriteLine($"------------------ {0} ------------------", filePath);
                 await fileTransferUtility.UploadAsync(filePath, bucketName, keyName);
                 return "OK";
             }
