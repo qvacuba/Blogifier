@@ -1,4 +1,5 @@
-﻿using Blogifier.Core.Extensions;
+﻿using Amazon.S3.Model;
+using Blogifier.Core.Extensions;
 using Blogifier.Shared;
 using Microsoft.AspNetCore.Http;
 using System;
@@ -23,7 +24,9 @@ namespace Blogifier.Core.Providers
 		Task<ThemeSettings> GetThemeSettings(string theme);
 		Task<bool> SaveThemeSettings(string theme, ThemeSettings settings);
 
-		Task<string> DownloadFile(string keyName);
+		Task<GetObjectResponse> DownloadFile(string keyName);
+
+		
 	}
 
 	public class StorageProvider : IStorageProvider
@@ -289,7 +292,7 @@ namespace Blogifier.Core.Providers
 			return imgTag.Substring(srcStart, srcEnd - srcStart);
 		}
 
-        public Task<string> DownloadFile(string keyName)
+        public Task<GetObjectResponse> DownloadFile(string keyName)
         {
             throw new NotImplementedException();
         }

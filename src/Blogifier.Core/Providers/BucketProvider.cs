@@ -14,20 +14,31 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Util;
 using Amazon.S3.Transfer;
+using Microsoft.Extensions.Configuration;
 
 namespace Blogifier.Core.Providers
 {
     public class BucketProvider : IStorageProvider
     {
 		private const string bucketName = "qvanuncios-bucket";
-		private static readonly RegionEndpoint bucketRegion = RegionEndpoint.USWest2;
-        private static IAmazonS3 s3Client;
 
+		private string secretKey;
+
+		private string publicKey;
+
+		private readonly IConfiguration _configuration;
+		private static readonly RegionEndpoint bucketRegion = RegionEndpoint.USEast2;
+        private static IAmazonS3 s3Client;
+		
 		private string _storageRoot;
 		private readonly string _slash = Path.DirectorySeparatorChar.ToString();
-		public BucketProvider()
+		public BucketProvider(IConfiguration configuration)
 		{
+			_configuration = configuration;
 			_storageRoot = $"{ContentRoot}{_slash}wwwroot{_slash}data{_slash}";
+			publicKey = _configuration["AWSCredentials:S3Bucket:accessKey"];
+			secretKey = _configuration["AWSCredentials:S3Bucket:secretKey"];
+            s3Client = new AmazonS3Client(publicKey, secretKey, bucketRegion);
 		}
 
         public bool FileExists(string path)
@@ -99,10 +110,9 @@ namespace Blogifier.Core.Providers
             throw new NotImplementedException();
         }
 
-		public async Task<string> DownloadFile(string keyName)
+		public async Task<GetObjectResponse> DownloadFile(string keyName)
         {
-            s3Client = new AmazonS3Client(bucketRegion);
-            string responseBody = "";
+            s3Client = new AmazonS3Client(publicKey, secretKey, bucketRegion);
             try
             {
                 GetObjectRequest request = new GetObjectRequest
@@ -110,26 +120,20 @@ namespace Blogifier.Core.Providers
                     BucketName = bucketName,
                     Key = keyName
                 };
-                using (GetObjectResponse response = await s3Client.GetObjectAsync(request))
-                using (Stream responseStream = response.ResponseStream)
-                using (StreamReader reader = new StreamReader(responseStream))
-                {
-                    responseBody = reader.ReadToEnd(); // Now you process the response body.
-                }
-                return responseBody;
+                return await s3Client.GetObjectAsync(request);
             }
             catch (AmazonS3Exception)
             {
                 // If bucket or object does not exist
-                return "Error";
+                return new GetObjectResponse();
             }
         }
 
         public async Task<bool> UploadFormFile(IFormFile file, string path = "")
         {
-            s3Client = new AmazonS3Client(bucketRegion);
-			string filename = file.FileName;
-			var res = await UploadFileAsync(file.FileName, filename);
+            s3Client = new AmazonS3Client(publicKey, secretKey, bucketRegion);
+			
+			var res = await UploadFileAsync(file.OpenReadStream(), path);
 			if (res == "Ok")
 				return true;
 			else
@@ -141,15 +145,13 @@ namespace Blogifier.Core.Providers
             throw new NotImplementedException();
         }
 
-		private async Task<string> UploadFileAsync(string filePath, string keyName)
+		private async Task<string> UploadFileAsync(Stream file, string keyName)
         {
             try
             {
-                var fileTransferUtility =
-                    new TransferUtility(s3Client);
-				Console.WriteLine($"------------------ {0} ------------------", filePath);
-                await fileTransferUtility.UploadAsync(filePath, bucketName, keyName);
-                return "OK";
+				var fileTransferUtility = new TransferUtility(s3Client);
+				await fileTransferUtility.UploadAsync(file, bucketName, keyName);
+				return "Ok";
             }
             catch (AmazonS3Exception e)
             {

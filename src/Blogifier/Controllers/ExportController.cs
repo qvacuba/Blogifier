@@ -118,7 +118,7 @@ namespace Blogifier.Controllers
                     using (MemoryStream stream = new MemoryStream())  
                     {  
                         foreach(var e in emails) {
-                            stream.Write(Encoding.ASCII.GetBytes(e.Email));
+                            stream.Write(Encoding.ASCII.GetBytes(e.Email + "\n"));
                         }
                         return File(stream.ToArray(), "application/Text", "Subscribers.txt");  
                     }    

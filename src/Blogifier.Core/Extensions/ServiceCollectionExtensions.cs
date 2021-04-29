@@ -1,5 +1,6 @@
 using Blogifier.Core.Data;
 using Blogifier.Core.Providers;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -53,6 +54,7 @@ namespace Blogifier.Core.Extensions
 			services.AddScoped<IThemeProvider, ThemeProvider>();
 			services.AddScoped<ISyndicationProvider, SyndicationProvider>();
 			services.AddScoped<IAboutProvider, AboutProvider>();
+			services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
 			return services;
 		}
