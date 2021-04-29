@@ -1,3 +1,4 @@
+using System.Text;
 using System.Reflection;
 using Blogifier.Core.Extensions;
 using Blogifier.Shared;
@@ -36,8 +37,9 @@ namespace Blogifier.Core.Providers
 		{
 			_configuration = configuration;
 			_storageRoot = $"{ContentRoot}{_slash}wwwroot{_slash}data{_slash}";
-			publicKey = _configuration["AWSCredentials:S3Bucket:accessKey"];
-			secretKey = _configuration["AWSCredentials:S3Bucket:secretKey"];
+			var tuple = GetAWSCredentials();
+			publicKey = tuple.Item1;
+			secretKey = tuple.Item2;
             s3Client = new AmazonS3Client(publicKey, secretKey, bucketRegion);
 		}
 
@@ -45,6 +47,30 @@ namespace Blogifier.Core.Providers
         {
             throw new NotImplementedException();
         }
+
+		private (string, string) GetAWSCredentials() {
+			var filePath = "../../.env";
+			var publicKeyS = "";
+			var secretKeyS = "";
+
+
+			if (!File.Exists(filePath)) {
+				return (null, null);
+			}
+
+            foreach (var line in File.ReadAllLines(filePath))
+            {
+                var parts = line.Split('=',StringSplitOptions.RemoveEmptyEntries);
+
+                if (parts.Length != 2)
+                    continue;
+
+                if(parts[0] == "AWS_BUCKET_PUBLIC_KEY") publicKeyS = parts[1];
+				else if (parts[0] == "AWS_BUCKET_SECRET_KEY") secretKeyS = parts[1]; 
+            }
+
+			return (publicKeyS, secretKeyS);
+		}
 
         public async Task<IList<string>> GetThemes()
         {
@@ -132,8 +158,9 @@ namespace Blogifier.Core.Providers
         public async Task<bool> UploadFormFile(IFormFile file, string path = "")
         {
             s3Client = new AmazonS3Client(publicKey, secretKey, bucketRegion);
-			
+
 			var res = await UploadFileAsync(file.OpenReadStream(), path);
+			
 			if (res == "Ok")
 				return true;
 			else
