@@ -111,7 +111,9 @@ namespace Blogifier.Controllers
                         using (MemoryStream stream = new MemoryStream())  
                         {  
                             workBook.SaveAs(stream);  
-                            return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Subscribers.xlsx");  
+                            return File(stream.ToArray(), 
+                                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                "Subscribers.xlsx");  
                         }  
                     }
                 case "txt":
@@ -140,7 +142,8 @@ namespace Blogifier.Controllers
                                             new DataColumn("Blog") });  
             foreach (var s in subscribers)  
             {  
-                dtSubs.Rows.Add(s.Id, s.Email.ToString(), s.Ip.ToString(), s.Country.ToString(), s.Region.ToString(), s.Blog.ToString());  
+                dtSubs.Rows.Add(s.Id, s.Email.ToString(), s.Ip.ToString(),
+                     s.Country.ToString(), s.Region.ToString(), s.Blog.ToString());  
             }  
     
             return dtSubs;  

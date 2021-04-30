@@ -110,13 +110,15 @@ namespace Blogifier.Core.Providers
 
         public async Task<bool> SaveThemeSettings(string theme, ThemeSettings settings)
         {
-            var fileName = Path.Combine(ContentRoot, $"wwwroot{_slash}themes{_slash}{theme.ToLower()}{_slash}settings.json");
+            var fileName = Path.
+				Combine(ContentRoot, $"wwwroot{_slash}themes{_slash}{theme.ToLower()}{_slash}settings.json");
 			try
 			{
 				if (File.Exists(fileName))
 					File.Delete(fileName);
 
-				var options = new JsonSerializerOptions { WriteIndented = true, PropertyNameCaseInsensitive = true	};
+				var options = new JsonSerializerOptions 
+					{ WriteIndented = true, PropertyNameCaseInsensitive = true	};
 
 				string jsonString = JsonSerializer.Serialize(settings, options);
 
