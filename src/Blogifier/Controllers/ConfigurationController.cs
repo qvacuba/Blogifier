@@ -30,7 +30,7 @@ namespace Blogifier.Controllers
                 return BadRequest();
             }
         }
-
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetConfigurations() {
             try {
@@ -40,7 +40,7 @@ namespace Blogifier.Controllers
                 return BadRequest();
             }
         }
-
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] Configuration request) {    
             try {
