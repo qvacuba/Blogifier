@@ -1,4 +1,5 @@
-﻿using Amazon.S3.Model;
+using System.Text;
+using System.Reflection;
 using Blogifier.Core.Extensions;
 using Blogifier.Shared;
 using Microsoft.AspNetCore.Http;
@@ -9,45 +10,71 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
-
-
+using Amazon;
+using Amazon.S3;
+using Amazon.S3.Model;
+using Amazon.S3.Util;
+using Amazon.S3.Transfer;
+using Microsoft.Extensions.Configuration;
 
 namespace Blogifier.Core.Providers
 {
-	public interface IStorageProvider
-	{
-		Task<IList<string>> GetThemes();
-		bool FileExists(string path);
-		Task<bool> UploadFormFile(IFormFile file, string path = "");
-		Task<string> UploadFromWeb(Uri requestUri, string root, string path = "");
-		Task<string> UploadBase64Image(string baseImg, string root, string path = "");
-		Task<ThemeSettings> GetThemeSettings(string theme);
-		Task<bool> SaveThemeSettings(string theme, ThemeSettings settings);
+    public class BucketProvider : IStorageProvider
+    {
+		private const string bucketName = "qvanuncios-bucket";
 
-		Task<GetObjectResponse> DownloadFile(string keyName);
+		private string secretKey;
 
+		private string publicKey;
+
+		private readonly IConfiguration _configuration;
+		private static readonly RegionEndpoint bucketRegion = RegionEndpoint.USEast2;
+        private static IAmazonS3 s3Client;
 		
-	}
-
-	public class StorageProvider : IStorageProvider
-	{
 		private string _storageRoot;
 		private readonly string _slash = Path.DirectorySeparatorChar.ToString();
-		
-		public StorageProvider()
+		public BucketProvider(IConfiguration configuration)
 		{
+			_configuration = configuration;
 			_storageRoot = $"{ContentRoot}{_slash}wwwroot{_slash}data{_slash}";
+			var tuple = GetAWSCredentials();
+			publicKey = tuple.Item1;
+			secretKey = tuple.Item2;
+            s3Client = new AmazonS3Client(publicKey, secretKey, bucketRegion);
 		}
 
-		public bool FileExists(string path)
-		{
-			Serilog.Log.Information($"File exists: {Path.Combine(ContentRoot, path)}");
-			return File.Exists(Path.Combine(ContentRoot, path));
+        public bool FileExists(string path)
+        {
+            throw new NotImplementedException();
+        }
+
+		private (string, string) GetAWSCredentials() {
+			var filePath = "../../.env";
+			var publicKeyS = "";
+			var secretKeyS = "";
+
+
+			if (!File.Exists(filePath)) {
+				return (null, null);
+			}
+
+            foreach (var line in File.ReadAllLines(filePath))
+            {
+                var parts = line.Split('=',StringSplitOptions.RemoveEmptyEntries);
+
+                if (parts.Length != 2)
+                    continue;
+
+                if(parts[0] == "AWS_BUCKET_PUBLIC_KEY") publicKeyS = parts[1];
+				else if (parts[0] == "AWS_BUCKET_SECRET_KEY") secretKeyS = parts[1]; 
+            }
+
+			return (publicKeyS, secretKeyS);
 		}
 
-		public async Task<IList<string>> GetThemes()
-		{
-			var themes = new List<string>();
+        public async Task<IList<string>> GetThemes()
+        {
+            var themes = new List<string>();
 			var themesDirectory = Path.Combine(ContentRoot, $"Views{_slash}Themes");
 			try
 			{
@@ -58,11 +85,11 @@ namespace Blogifier.Core.Providers
 			}
 			catch { }
 			return await Task.FromResult(themes);
-		}
+        }
 
-		public async Task<ThemeSettings> GetThemeSettings(string theme)
-		{
-			var settings = new ThemeSettings();
+        public async Task<ThemeSettings> GetThemeSettings(string theme)
+        {
+            var settings = new ThemeSettings();
 			var fileName = Path.Combine(ContentRoot, $"wwwroot{_slash}themes{_slash}{theme.ToLower()}{_slash}settings.json");
 			if (File.Exists(fileName))
 			{
@@ -79,17 +106,19 @@ namespace Blogifier.Core.Providers
 			}
 
 			return await Task.FromResult(settings);
-		}
+        }
 
-		public async Task<bool> SaveThemeSettings(string theme, ThemeSettings settings)
-		{
-			var fileName = Path.Combine(ContentRoot, $"wwwroot{_slash}themes{_slash}{theme.ToLower()}{_slash}settings.json");
+        public async Task<bool> SaveThemeSettings(string theme, ThemeSettings settings)
+        {
+            var fileName = Path.
+				Combine(ContentRoot, $"wwwroot{_slash}themes{_slash}{theme.ToLower()}{_slash}settings.json");
 			try
 			{
 				if (File.Exists(fileName))
 					File.Delete(fileName);
 
-				var options = new JsonSerializerOptions { WriteIndented = true, PropertyNameCaseInsensitive = true	};
+				var options = new JsonSerializerOptions 
+					{ WriteIndented = true, PropertyNameCaseInsensitive = true	};
 
 				string jsonString = JsonSerializer.Serialize(settings, options);
 
@@ -102,78 +131,62 @@ namespace Blogifier.Core.Providers
 				return false;
 			}
 			return true;
-		}
+        }
 
-		public async Task<bool> UploadFormFile(IFormFile file, string path = "")
-		{
-			path = path.Replace("/", _slash);
-			VerifyPath(path);
+        public Task<string> UploadBase64Image(string baseImg, string root, string path = "")
+        {
+            throw new NotImplementedException();
+        }
 
-			var fileName = GetFileName(file.FileName);
-			var filePath = string.IsNullOrEmpty(path) ?
-				 Path.Combine(_storageRoot, fileName) :
-				 Path.Combine(_storageRoot, path + _slash + fileName);
+		public async Task<GetObjectResponse> DownloadFile(string keyName)
+        {
+            s3Client = new AmazonS3Client(publicKey, secretKey, bucketRegion);
+            try
+            {
+                GetObjectRequest request = new GetObjectRequest
+                {
+                    BucketName = bucketName,
+                    Key = keyName
+                };
+                return await s3Client.GetObjectAsync(request);
+            }
+            catch (AmazonS3Exception)
+            {
+                // If bucket or object does not exist
+                return new GetObjectResponse();
+            }
+        }
 
-			using (var fileStream = new FileStream(filePath, FileMode.Create))
-			{
-				await file.CopyToAsync(fileStream);
-			}
-			return true;
-		}
+        public async Task<bool> UploadFormFile(IFormFile file, string path = "")
+        {
+            s3Client = new AmazonS3Client(publicKey, secretKey, bucketRegion);
 
-		public async Task<string> UploadFromWeb(Uri requestUri, string root, string path = "")
-		{
-			path = path.Replace("/", _slash);
-			VerifyPath(path);
+			var res = await UploadFileAsync(file.OpenReadStream(), path);
+			
+			if (res == "Ok")
+				return true;
+			else
+				return false;
+        }
 
-			var fileName = TitleFromUri(requestUri);
-			var filePath = string.IsNullOrEmpty(path) ?
-				 Path.Combine(_storageRoot, fileName) :
-				 Path.Combine(_storageRoot, path + _slash + fileName);
+        public Task<string> UploadFromWeb(Uri requestUri, string root, string path = "")
+        {
+            throw new NotImplementedException();
+        }
 
-			using (WebClient client = new WebClient())
-			{
-				client.DownloadFile(requestUri, filePath);
-				return await Task.FromResult($"![{fileName}]({root}{PathToUrl(filePath)})");
-			}
-		}
-
-		public async Task<string> UploadBase64Image(string baseImg, string root, string path = "")
-		{
-			path = path.Replace("/", _slash);
-			var fileName = "";
-
-			VerifyPath(path);
-			string imgSrc = GetImgSrcValue(baseImg);
-
-			Random rnd = new Random();
-
-			if (imgSrc.StartsWith("data:image/png;base64,"))
-			{
-				fileName = string.Format("{0}.png", rnd.Next(1000, 9999));
-				imgSrc = imgSrc.Replace("data:image/png;base64,", "");
-			}
-			if (imgSrc.StartsWith("data:image/jpeg;base64,"))
-			{
-				fileName = string.Format("{0}.jpeg", rnd.Next(1000, 9999));
-				imgSrc = imgSrc.Replace("data:image/jpeg;base64,", "");
-			}
-			if (imgSrc.StartsWith("data:image/gif;base64,"))
-			{
-				fileName = string.Format("{0}.gif", rnd.Next(1000, 9999));
-				imgSrc = imgSrc.Replace("data:image/gif;base64,", "");
-			}
-
-			var filePath = string.IsNullOrEmpty(path) ?
-				 Path.Combine(_storageRoot, fileName) :
-				 Path.Combine(_storageRoot, path + _slash + fileName);
-
-			await File.WriteAllBytesAsync(filePath, Convert.FromBase64String(imgSrc));
-
-			return $"![{fileName}]({root}{PathToUrl(filePath)})";
-		}
-
-		#region Private members
+		private async Task<string> UploadFileAsync(Stream file, string keyName)
+        {
+            try
+            {
+				var fileTransferUtility = new TransferUtility(s3Client);
+				await fileTransferUtility.UploadAsync(file, bucketName, keyName);
+				return "Ok";
+            }
+            catch (AmazonS3Exception e)
+            {
+                return e.Message;
+            }
+        }
 
 		private string ContentRoot
 		{
@@ -291,12 +304,5 @@ namespace Blogifier.Core.Providers
 
 			return imgTag.Substring(srcStart, srcEnd - srcStart);
 		}
-
-        public Task<GetObjectResponse> DownloadFile(string keyName)
-        {
-            throw new NotImplementedException();
-        }
-
-        #endregion
     }
 }

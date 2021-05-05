@@ -1,3 +1,4 @@
+using System.IO;
 using Blogifier.Core.Providers;
 using Blogifier.Shared;
 using Microsoft.AspNetCore.Authorization;
@@ -40,18 +41,24 @@ namespace Blogifier.Controllers
 			return (await Task.FromResult(_storageProvider.FileExists(path))) ? Ok() : BadRequest();
 		}
 
-		[Authorize]
+		// [Authorize]
+		[HttpGet("download/{key}")]
+		public async Task<IActionResult> Download(string key)
+		{
+			var resp = await _storageProvider.DownloadFile(key);
+			
+			return File(resp.ResponseStream, "image/*");
+		}
+
+		// [Authorize]
 		[HttpPost("upload/{uploadType}")]
-		public async Task<ActionResult> Upload(IFormFile file, UploadType uploadType, int postId = 0)
+		public async Task<ActionResult> Upload([FromForm]IFormFile file, UploadType uploadType, int postId = 0)
 		{
 			var author = await _authorProvider.FindByEmail(User.Identity.Name);
 			var post = postId == 0 ? new Post() : await _postProvider.GetPostById(postId);
 
-            var path = $"{author.Id}/{DateTime.Now.Year}/{DateTime.Now.Month}";
-			var fileName = $"data/{path}/{file.FileName}";
-
-            if (uploadType == UploadType.PostImage)
-                fileName = Url.Content("~/") + fileName;
+			var path = Guid.NewGuid().ToString();
+			var fileName = path;
 
 			if (await _storageProvider.UploadFormFile(file, path))
 			{
@@ -78,7 +85,7 @@ namespace Blogifier.Controllers
 			}
 			else
 			{
-				return BadRequest();
+				return BadRequest("Fail when uploading file");
 			}
 		}
 	}
