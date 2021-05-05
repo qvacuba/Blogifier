@@ -1,4 +1,5 @@
 @page "/admin/editor/{Slug?}/"
+@using System.Diagnostics
 @inject HttpClient _http
 @inject IStringLocalizer<Resource> _localizer
 @inject IJSRuntime _jsruntime
@@ -15,8 +16,14 @@
         <div class="editor-actions d-flex">
             @if (Post.Id == 0)
             {
-                <button type="button" class="btn btn-blogifier me-3 px-4" @onclick="() => Publish()">@_localizer["publish"]</button>
-                <button type="button" class="btn btn-default me-auto" @onclick="() => Save()" @onclick:preventDefault>@_localizer["save"]</button>
+                <div class="d-flex">
+                    <button type="button" class="btn btn-blogifier me-3 px-4" @onclick="() => Publish()">@_localizer["publish"]</button>
+                    <button type="button" class="btn btn-default me-auto" @onclick="() => Save()" @onclick:preventDefault>@_localizer["save"]</button>
+                    <label class="list-check form-check mt-2 mx-5 px-3" data-toggle="tooltip" title="Post in facebook">
+                        <span class="d-none d-lg-inline">Post in facebook</span>
+                        <input type="checkbox" class="list-check-input form-check-input" @bind="Checked">
+                    </label>
+                </div>
             }
             else
             {
@@ -24,6 +31,10 @@
                 {
                     <button type="button" class="btn btn-blogifier me-3 px-4" @onclick="() => Save()">@_localizer["save"]</button>
                     <button type="button" class="btn btn-default me-auto" @onclick="() => Unpublish()" @onclick:preventDefault>@_localizer["unpublish"]</button>
+                    <label class="list-check form-check mt-1 px-3" data-toggle="tooltip" title="Post in facebook">
+                        <span class="ms-2 d-none d-lg-inline">Post in facebook</span>
+                        <input type="checkbox" class="list-check-input form-check-input" @bind="Checked">
+                    </label>
                     <button class="btn btn-link me-1" @onclick="(() => Remove(Post.Id))" title="@_localizer["delete"]">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
                             <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z" />
@@ -42,6 +53,10 @@
                 {
                     <button type="button" class="btn btn-blogifier me-3 px-4" @onclick="() => Publish()">@_localizer["publish"]</button>
                     <button type="button" class="btn btn-default me-auto" @onclick="() => Save()" @onclick:preventDefault>@_localizer["save"]</button>
+                    <label class="list-check form-check mt-1 px-3" data-toggle="tooltip" title="Post in facebook">
+                        <span class="ms-2 d-none d-lg-inline">Post in facebook</span>
+                        <input type="checkbox" class="list-check-input form-check-input" @bind="Checked">
+                    </label>
                     <button class="btn btn-link" @onclick="(() => Remove(Post.Id))" title="@_localizer["delete"]">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
                             <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z" />
@@ -98,6 +113,7 @@
 <ToasterComponent @ref="Toaster" />
 
 @code{
+   protected bool Checked;
    protected Author Author { get; set; }
    protected Post Post { get; set; }
    protected ToasterComponent Toaster;
@@ -194,13 +210,17 @@
    protected async Task Save()
    {
        await SavePost(PostAction.Save);
-       await _jsruntime.InvokeAsync<object>("open",
+        if (Checked){
+           await _jsruntime.InvokeAsync<object>("open",
            "http://www.facebook.com/sharer/sharer.php?s=100&p[url]=http://209.126.4.27:5000/posts/"
             + Post.Slug, "_blank");
+       }
+
    }
 
    protected async Task Publish()
    {
+       Checked=false;
        await SavePost(PostAction.Publish);
    }
 
@@ -220,12 +240,14 @@
 
    protected async Task ResetCover()
    {
+       Checked=false;
        Post.Cover = Constants.DefaultCover;
        await Save();
    }
 
    protected async Task RemoveCover()
    {
+       Checked=false;
        Post.Cover = null;
        await Save();
    }
