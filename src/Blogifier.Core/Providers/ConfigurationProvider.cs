@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
 using Blogifier.Core.Data;
-using Blogifier.Shared;
+using Blogifier.Shared.Domain;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;

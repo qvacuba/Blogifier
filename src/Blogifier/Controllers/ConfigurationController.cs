@@ -1,6 +1,6 @@
 using System;
 using Blogifier.Core.Providers;
-using Blogifier.Shared;
+using Blogifier.Shared.Domain;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;

@@ -1,4 +1,5 @@
 using Blogifier.Shared;
+using Blogifier.Shared.Domain;
 using Microsoft.EntityFrameworkCore;
 
 namespace Blogifier.Core.Data
@@ -21,6 +22,8 @@ namespace Blogifier.Core.Data
         public DbSet<Newsletter> Newsletters { get; set; }
         public DbSet<MailSetting> MailSettings { get; set; }
         public DbSet<PostCategory> PostCategories { get; set; }
+
+        public DbSet<Configuration> Configurations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

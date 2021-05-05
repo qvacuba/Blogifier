@@ -194,6 +194,9 @@
    protected async Task Save()
    {
        await SavePost(PostAction.Save);
+       await _jsruntime.InvokeAsync<object>("open",
+           "http://www.facebook.com/sharer/sharer.php?s=100&p[url]=http://209.126.4.27:5000/posts/"
+            + Post.Slug, "_blank");
    }
 
    protected async Task Publish()
