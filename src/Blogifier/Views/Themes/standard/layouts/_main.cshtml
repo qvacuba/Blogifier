@@ -5,6 +5,7 @@
     var siteTitle = Model.Blog.Title;
     var siteDesc = Model.Blog.Description;
     var siteFeed = absoluteUrl + "/feed/rss";
+    var underDevelopment = Model.Blog.IncludeFeatured;
 
     var pageTitle = siteTitle + " | " + siteDesc;
     var pageDesc = siteDesc;
@@ -58,9 +59,25 @@
 
 
 <body>
+    @if (underDevelopment==true)
+    {
+        @RenderBody()
+        <div class="under_development">
+            <div>
+                <div class="wrap">
+                    <h1>Blogifier is Under Development</h1>
+	                <h2>
+                        <p>Sorry for the inconvenience.<br>Our website is currently out of service.<br><br></p>
+                    </h2>
+	                <p>Thank you for your understanding.</p>
+                </div>
+            </div>
+        </div>
+    }else{
     <partial name="../components/header.cshtml" />
     @RenderBody()
     <partial name="../components/footer.cshtml" />
+    }
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
     <script src="~/themes/standard/js/highlight.js" asp-append-version="true"></script>

@@ -10,10 +10,10 @@ namespace Blogifier.Core.Providers
 {
 
     public interface IConfigurationProvider {
-        Task<Configuration> GetConfiguration(string key);
-        Task<List<Configuration>> GetAllConfigurations();
+        Task<Blogifier.Shared.Domain.Configuration> GetConfiguration(string key);
+        Task<List<Blogifier.Shared.Domain.Configuration>> GetAllConfigurations();
 
-        Task<Configuration> Add(string key, bool value);
+        Task<Blogifier.Shared.Domain.Configuration> Add(string key, bool value);
         Task<bool> Update(string key, bool value);
     }
     public class ConfigurationProvider : IConfigurationProvider
@@ -23,23 +23,23 @@ namespace Blogifier.Core.Providers
 		{
 			_db = db;
 		}
-        public async Task<Configuration> Add(string key, bool value)
+        public async Task<Blogifier.Shared.Domain.Configuration> Add(string key, bool value)
         {
             var entity = await _db.Configurations.Where(c => c.Name == key).FirstOrDefaultAsync();
-            if (entity != null) {
-                entity = new Configuration(){ Name = key, Active = value};
+            if (entity == null) {
+                entity = new Blogifier.Shared.Domain.Configuration(){ Name = key, Active = value};
                 await _db.Configurations.AddAsync(entity);
                 await _db.SaveChangesAsync();
             }
             return entity;
         }
 
-        public async Task<List<Configuration>> GetAllConfigurations()
+        public async Task<List<Blogifier.Shared.Domain.Configuration>> GetAllConfigurations()
         {
             return await _db.Configurations.ToListAsync();
         }
 
-        public async Task<Configuration> GetConfiguration(string key)
+        public async Task<Blogifier.Shared.Domain.Configuration> GetConfiguration(string key)
         {
             return await _db.Configurations.Where(c => c.Name == key).FirstOrDefaultAsync();
         }

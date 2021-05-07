@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Blogifier.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/config")]
 	[ApiController]
     public class ConfigurationController : ControllerBase
     {
@@ -42,7 +42,7 @@ namespace Blogifier.Controllers
         }
         [Authorize]
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] Configuration request) {    
+        public async Task<IActionResult> Create([FromBody] Configuration request) {  
             try {
                 var resp = await configurationProvider.Add(request.Name, request.Active);
                 return Ok(resp);
@@ -51,11 +51,12 @@ namespace Blogifier.Controllers
             }
         }
 
+        [Authorize]
         [HttpPut("{key}")]
-        public async Task<IActionResult> Update(Configuration request, string key) {    
+        public async Task<IActionResult> Update([FromBody] Configuration request, string key) {    
             try {
                 var resp = await configurationProvider.Update(key, request.Active);
-                return Ok(resp);
+                return resp ? Ok(resp) : NotFound(key);
             } catch(Exception) {
                 return BadRequest();
             }
