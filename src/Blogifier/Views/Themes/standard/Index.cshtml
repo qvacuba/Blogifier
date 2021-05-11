@@ -1,10 +1,9 @@
 ﻿@using Blogifier.Shared
 @{
     Layout = "layouts/_main.cshtml";
-    var underDevelopment = Model.Blog.IncludeFeatured;
 }
 
-@if (underDevelopment!=true)
+@if (ViewBag.UnderDevelopment!=true)
 {
     <main class="container">
         <partial name="post/featured.cshtml" />

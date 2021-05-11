@@ -23,10 +23,11 @@ namespace Blogifier.Controllers
 		protected readonly IThemeProvider _themeProvider;
 		protected readonly IStorageProvider _storageProvider;
         protected readonly ICompositeViewEngine _compositeViewEngine;
+		protected readonly IConfigurationProvider _configurationProvider;
 
         public HomeController(IBlogProvider blogProvider,
             IPostProvider postProvider, IFeedProvider feedProvider, IAuthorProvider authorProvider, IThemeProvider themeProvider,
-            IStorageProvider storageProvider, ICompositeViewEngine compositeViewEngine)
+            IStorageProvider storageProvider, ICompositeViewEngine compositeViewEngine, IConfigurationProvider configurationProvider)
 		{
 			_blogProvider = blogProvider;
 			_postProvider = postProvider;
@@ -35,6 +36,7 @@ namespace Blogifier.Controllers
 			_themeProvider = themeProvider;
 			_storageProvider = storageProvider;
             _compositeViewEngine = compositeViewEngine;
+			_configurationProvider= configurationProvider;
 		}
 
 		public async Task<IActionResult> Index(string term, int page = 1)
@@ -48,6 +50,10 @@ namespace Blogifier.Controllers
 			{
 				return Redirect("~/admin");
 			}
+
+		 	var Configuration = await _configurationProvider.GetConfiguration("UnderDevelopment");
+
+			ViewBag.UnderDevelopment = Configuration.Active;
 
 			model.Pager = new Pager(page, model.Blog.ItemsPerPage);
 
