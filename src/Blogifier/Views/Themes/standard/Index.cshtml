@@ -3,17 +3,21 @@
     Layout = "layouts/_main.cshtml";
 }
 
-<main class="container">
-    <partial name="post/featured.cshtml" />
-    @*
-        TODO:
-        Custom fields:
-        - Post list style options:
-            1. view-grid (default)
-            2. view-list
-    *@
-    <partial name="post/view-grid.cshtml" />
-    @* <partial name="post/view-list.cshtml" /> *@
+@if (ViewBag.UnderDevelopment!=true)
+{
+    <main class="container">
+        <partial name="post/featured.cshtml" />
+        @*
+            TODO:
+            Custom fields:
+            - Post list style options:
+                1. view-grid (default)
+                2. view-list
+        *@
+        <partial name="post/view-grid.cshtml" />
+        <partial name="post/view-list.cshtml" />
 
-    <partial name="components/pagination.cshtml" />
-</main>
+        <partial name="components/pagination.cshtml" />
+    </main>
+}
+

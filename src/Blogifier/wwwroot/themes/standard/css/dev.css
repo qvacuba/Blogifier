@@ -1,0 +1,53 @@
+@import url('https://fonts.googleapis.com/css?family=Poiret+One|Source+Sans+Pro');
+
+#overlay {
+    background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+    position: fixed;
+    top: 0px;
+    width: 100%;
+    bottom: 0px;
+    opacity: 0.8;
+}
+
+.under_development{
+    color: #ecf0f1;
+    position: absolute;
+	height: 100%;
+	width: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.under_development .main{
+    display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+}
+
+.under_development .title{
+    font-size: 4rem;
+    margin-bottom: .5rem;
+	width: 100%;
+}
+
+.under_development .subtitle{
+    border-top: .1rem solid #fff;
+    padding: 1rem 4rem;
+	text-align: center;
+}
+
+.under_development .temp{
+    color: white;
+    display:block;
+    text-align:center;
+    margin-top:40px;
+}
+
+.under_development .temp a{
+    color: white;
+    display:block;
+    text-align:center;
+    margin-top:40px;
+}

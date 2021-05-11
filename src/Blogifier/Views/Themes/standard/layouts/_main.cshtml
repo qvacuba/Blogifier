@@ -1,3 +1,7 @@
+@using Blogifier.Shared.Resources
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<Resource> _localizer
+
 @{
     var request = Url.ActionContext.HttpContext.Request;
     var absoluteUrl = $"{request.Scheme}://{request.Host.ToUriComponent()}{request.PathBase.ToUriComponent()}";
@@ -52,15 +56,34 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
     <link rel="stylesheet" href="~/themes/standard/css/styles.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/themes/standard/css/dev.css" asp-append-version="true">
 
     @Html.Raw(Model.Blog.HeaderScript)
 </head>
 
 
 <body>
+    @if (ViewBag.UnderDevelopment==true)
+    {
+        @RenderBody()
+        <div id="overlay" class="under_development">
+                <div class="main">
+                    <section class="contact">
+                        <h1 class="title">@siteTitle is Under Development</h1>
+	                    <h2 class="subtitle">
+                            <p>Sorry for the inconvenience.<br>Our website is currently out of service.<br><br></p>
+                        </h2>
+	                    <span class="temp">
+                            Thank you for your understanding. <a href="~/admin/">Sign Up</a>
+	                    </span>
+                    </section>
+                </div>
+        </div>
+    }else{
     <partial name="../components/header.cshtml" />
     @RenderBody()
     <partial name="../components/footer.cshtml" />
+    }
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
     <script src="~/themes/standard/js/highlight.js" asp-append-version="true"></script>
